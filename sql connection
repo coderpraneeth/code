@@ -1,0 +1,68 @@
+# Importing necessary libraries
+import pyodbc  # For SQL Server
+import mysql.connector  # For MySQL
+
+# SQL Server Credentials (replace these placeholders with actual values)
+server = 'your_server_name_or_ip'  # e.g., 'localhost' or '192.168.1.1'
+database = 'your_database_name'  # e.g., 'test_db'
+username = 'your_username'  # e.g., 'admin'
+password = 'your_password'  # e.g., 'password123'
+
+# MySQL Credentials (replace these placeholders with actual values)
+mysql_host = 'your_mysql_host'  # e.g., 'localhost'
+mysql_database = 'your_mysql_db'  # e.g., 'test_mysql'
+mysql_user = 'your_mysql_user'  # e.g., 'root'
+mysql_password = 'your_mysql_password'  # e.g., 'rootpass'
+
+# Function to connect to SQL Server (using pyodbc)
+def connect_sql_server():
+    try:
+        # Creating a connection to SQL Server
+        conn = pyodbc.connect(f'DRIVER={{SQL Server}};SERVER={server};DATABASE={database};UID={username};PWD={password}')
+        cursor = conn.cursor()
+        print("Connected to SQL Server successfully!")
+        
+        # Querying data
+        cursor.execute("SELECT * FROM your_table_name")  # Replace 'your_table_name' with the actual table name
+        rows = cursor.fetchall()
+        
+        # Printing the fetched data
+        for row in rows:
+            print(row)
+        
+        # Closing the connection
+        conn.close()
+    except Exception as e:
+        print(f"Error connecting to SQL Server: {e}")
+
+# Function to connect to MySQL (using mysql-connector)
+def connect_mysql():
+    try:
+        # Creating a connection to MySQL
+        conn = mysql.connector.connect(
+            host=mysql_host,
+            database=mysql_database,
+            user=mysql_user,
+            password=mysql_password
+        )
+        cursor = conn.cursor()
+        print("Connected to MySQL successfully!")
+        
+        # Querying data
+        cursor.execute("SELECT * FROM your_table_name")  # Replace 'your_table_name' with the actual table name
+        rows = cursor.fetchall()
+        
+        # Printing the fetched data
+        for row in rows:
+            print(row)
+        
+        # Closing the connection
+        conn.close()
+    except Exception as e:
+        print(f"Error connecting to MySQL: {e}")
+
+# Call the functions to connect and fetch data
+# Uncomment the one you want to use:
+
+# connect_sql_server()  # Use this if connecting to SQL Server
+# connect_mysql()  # Use this if connecting to MySQL
