@@ -1,0 +1,48 @@
+# Import necessary libraries to interact with AWS Glue, Spark, and work with data
+import sys
+from awsglue.context import GlueContext  # AWS Glue context for accessing Glue-specific functionalities
+from pyspark.context import SparkContext  # Spark context to interact with Spark functionalities
+from awsglue.dynamicframe import DynamicFrame  # AWS Glue DynamicFrame for converting data between Spark DataFrame and Glue
+from pyspark.sql.functions import col, concat_ws  # Spark functions for manipulating and concatenating columns
+
+# Initialize the SparkContext and GlueContext
+sc = SparkContext()  # Creating a Spark context to initialize Spark session
+glueContext = GlueContext(sc)  # Glue context that connects Spark with Glue
+spark = glueContext.spark_session  # Spark session used for creating DataFrame
+
+# Read data from S3 (assuming data is already in S3)
+# Change these paths according to where the raw data is stored for each system
+df_system1 = spark.read.parquet("s3://path-to-system1-data/")  # Reading the first system’s data from S3
+df_system2 = spark.read.parquet("s3://path-to-system2-data/")  # Reading the second system’s data from S3
+df_system3 = spark.read.parquet("s3://path-to-system3-data/")  # Reading the third system’s data from S3
+
+# Create a 'common_key' for each dataset by concatenating multiple columns
+# Here we are combining columns to create a unique identifier for each record in the data
+# The 'concat_ws' function concatenates columns with an underscore "_" as a separator
+# For system1, we are combining 'building_name' and 'building_id'
+df_system1 = df_system1.withColumn("common_key", concat_ws("_", col("building_name"), col("building_id")))
+
+# For system2, we're combining 'building_status' and 'location' to create a 'common_key'
+df_system2 = df_system2.withColumn("common_key", concat_ws("_", col("building_status"), col("location")))
+
+# For system3, we're combining 'floor_name' and 'area_code' to create a 'common_key'
+df_system3 = df_system3.withColumn("common_key", concat_ws("_", col("floor_name"), col("area_code")))
+
+# Optionally, you can apply more advanced logic here to create a better 'common_key',
+# for example, using hash functions or UUIDs to create unique identifiers.
+
+# Now, we combine the data from the three systems by joining them on the 'common_key'
+# This ensures that all data from the three systems is aligned with the newly created common_key
+combined_df = df_system1.join(df_system2, ["common_key"], "outer") \
+                        .join(df_system3, ["common_key"], "outer")
+
+# Convert the combined DataFrame into a Glue DynamicFrame
+# Glue DynamicFrame is a specialized data structure that works well with Glue
+dynamic_frame = DynamicFrame.fromDF(combined_df, glueContext, "combined_dynamic_frame")
+
+# Write the combined data with the common key to an S3 bucket
+# This stores the processed data as Parquet files in S3
+# Change the path to your own S3 destination
+glueContext.write_dynamic_frame.from_options(dynamic_frame, connection_type="s3", 
+                                              connection_options={"path": "s3://path-to-integrated-data/"},
+                                              format="parquet")  # Saving the output as Parquet files
