@@ -1,0 +1,61 @@
+# Importing necessary libraries
+import sys
+from awsglue.utils import getResolvedOptions
+from awsglue.context import GlueContext
+from pyspark.context import SparkContext
+from awsglue.dynamicframe import DynamicFrame
+
+# Initializing the SparkContext and GlueContext
+sc = SparkContext()
+glueContext = GlueContext(sc)
+
+# Resolving arguments passed to the Glue job
+args = getResolvedOptions(sys.argv, ['JOB_NAME'])
+
+# 1. Connect to the first system's database (System 1)
+connection_name_1 = "your_connection_name_1"  # Replace with actual connection name for System 1
+dynamic_frame_1 = glueContext.create_dynamic_frame.from_catalog(
+    database = "your_glue_catalog_database_1",  # Replace with Glue Catalog database for System 1
+    table_name = "your_table_name_1",  # Replace with table name for System 1
+    connection_options = {"connectionName": connection_name_1},  # Connection to System 1
+    transformation_ctx = "dynamic_frame_1"
+)
+
+# Convert it to a DataFrame (optional)
+df_1 = dynamic_frame_1.toDF()
+df_1.show()
+
+# Write data to S3 for System 1
+df_1.write.parquet("s3://your-bucket-name/path_to_save_data_system_1/")  # Replace with S3 path for System 1
+
+# 2. Connect to the second system's database (System 2)
+connection_name_2 = "your_connection_name_2"  # Replace with actual connection name for System 2
+dynamic_frame_2 = glueContext.create_dynamic_frame.from_catalog(
+    database = "your_glue_catalog_database_2",  # Replace with Glue Catalog database for System 2
+    table_name = "your_table_name_2",  # Replace with table name for System 2
+    connection_options = {"connectionName": connection_name_2},  # Connection to System 2
+    transformation_ctx = "dynamic_frame_2"
+)
+
+# Convert it to a DataFrame
+df_2 = dynamic_frame_2.toDF()
+df_2.show()
+
+# Write data to S3 for System 2
+df_2.write.parquet("s3://your-bucket-name/path_to_save_data_system_2/")  # Replace with S3 path for System 2
+
+# 3. Connect to the third system's database (System 3)
+connection_name_3 = "your_connection_name_3"  # Replace with actual connection name for System 3
+dynamic_frame_3 = glueContext.create_dynamic_frame.from_catalog(
+    database = "your_glue_catalog_database_3",  # Replace with Glue Catalog database for System 3
+    table_name = "your_table_name_3",  # Replace with table name for System 3
+    connection_options = {"connectionName": connection_name_3},  # Connection to System 3
+    transformation_ctx = "dynamic_frame_3"
+)
+
+# Convert it to a DataFrame
+df_3 = dynamic_frame_3.toDF()
+df_3.show()
+
+# Write data to S3 for System 3
+df_3.write.parquet("s3://your-bucket-name/path_to_save_data_system_3/")  # Replace with S3 path for System 3
