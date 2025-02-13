@@ -1,0 +1,50 @@
+# Importing necessary libraries for AWS Glue and Spark processing
+import sys  # Library for handling system-specific parameters
+from awsglue.utils import getResolvedOptions  # AWS Glue utility for resolving input parameters
+from pyspark.context import SparkContext  # SparkContext is used to initialize Spark functionality
+from pyspark.sql import SQLContext  # SQLContext is used for SQL operations in Spark
+from awsglue.context import GlueContext  # GlueContext is AWS Glue's equivalent of SparkContext
+
+# Initialize the SparkContext for handling distributed processing
+sc = SparkContext()
+
+# Initialize SQLContext for SQL-based operations (optional, in case you want to use Spark SQL)
+sqlContext = SQLContext(sc)
+
+# Initialize GlueContext for working with AWS Glue functionality (works similarly to SparkContext)
+glueContext = GlueContext(sc)
+
+# Get input parameters passed to the Glue job from AWS Glue
+args = getResolvedOptions(sys.argv, ['JOB_NAME'])  # Resolves the input arguments for the Glue job
+
+# Set the connection name to your Glue connection that connects to the database
+# This connection name should be the one you set when you created the connection in the AWS Glue Console
+connection_name = "your_connection_name"  # Example: 'sql_server_connection' or 'mysql_connection'
+
+# Use AWS Glue's dynamic frame to read data from a cataloged source (data stored in AWS Glue Catalog)
+# The Catalog stores metadata information, and you can query data from it without worrying about details of the data store
+dynamic_frame = glueContext.create_dynamic_frame.from_catalog(
+    database="your_glue_catalog_database",  # Name of the Glue Catalog database where your data is stored
+    table_name="your_table_name",  # Name of the table within the Glue Catalog that you want to read
+    transformation_ctx="dynamic_frame"  # Transformation context for debugging and logging
+)
+
+# Convert the dynamic frame into a Spark DataFrame (Spark DataFrames allow for easier processing and SQL queries)
+# This conversion is optional depending on the operations you want to perform
+df = dynamic_frame.toDF()  # The toDF() function converts Glue DynamicFrame to Spark DataFrame
+
+# Perform operations on the DataFrame (here we're just showing the data as an example)
+df.show()  # Show the first few rows of the DataFrame for verification purposes
+
+# You can perform more Spark SQL operations if needed, such as filtering or aggregating data
+# For example, to filter data:
+# df_filtered = df.filter(df['column_name'] > some_value)
+# df_filtered.show()
+
+# Write the processed data to an output location (e.g., S3 bucket) as a Parquet file
+# This step writes the data to S3 in Parquet format, but you can change the format to JSON, CSV, etc.
+df.write.parquet("s3://your-bucket-name/your-folder-name/")  # Specify your output S3 bucket and folder
+
+# Commit the job to finalize and make sure the Glue job runs successfully
+# This step is mandatory in Glue jobs to mark the job as completed and write the output
+glueContext.commit()  # This commits the Glue job
