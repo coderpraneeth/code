@@ -1,0 +1,9 @@
+Here’s an example with simulated values:
+	1.	Hostname: 192.168.1.100
+	2.	Port: 5432
+	3.	Username: db_admin
+	4.	Password: SecureP@ssw0rd
+	5.	Database Name: customer_db
+	6.	Schema: public
+	7.	SSL Certificate: /path/to/ssl/certificate.pem
+	8.	Connection Timeout: 30
