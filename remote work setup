@@ -1,0 +1,17 @@
+Here’s the simplified format:
+
+What to Install:
+	1.	VPN Client (e.g., Cisco AnyConnect)
+	2.	SSH Client (e.g., PuTTY)
+	3.	RDP Client (Microsoft Remote Desktop)
+	4.	Database Client (e.g., MySQL Workbench, pgAdmin)
+	5.	Firewall Settings (Allow necessary ports)
+
+What to Request from IT Department:
+	1.	VPN Access (Credentials and server address)
+	2.	SSH Key (If required for remote systems)
+	3.	RDP Access (IP, port, and credentials)
+	4.	Database Credentials (For connection to systems)
+	5.	Firewall Exceptions (For VPN, RDP, database ports)
+
+This should cover the main steps.
