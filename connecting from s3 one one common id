@@ -1,0 +1,62 @@
+# Import necessary libraries
+from awsglue.context import GlueContext
+from pyspark.context import SparkContext
+from awsglue.dynamicframe import DynamicFrame
+from pyspark.sql import functions as F
+
+# Initialize the Spark context and Glue context
+sc = SparkContext()
+glueContext = GlueContext(sc)
+
+# Extract data from S3 (System 1: Archibus data)
+data_system1 = glueContext.create_dynamic_frame.from_options(
+    connection_type="s3",
+    connection_options={"paths": ["s3://your-bucket-name/system1/raw/table1.csv"]},  # Path to System 1 data
+    format="csv",  # Assuming CSV, change if using another format like Parquet
+    transformation_ctx="data_system1"
+)
+
+# Extract data from S3 (System 2: BIM data)
+data_system2 = glueContext.create_dynamic_frame.from_options(
+    connection_type="s3",
+    connection_options={"paths": ["s3://your-bucket-name/system2/raw/table1.csv"]},  # Path to System 2 data
+    format="csv",  # Change to the correct format
+    transformation_ctx="data_system2"
+)
+
+# Extract data from S3 (System 3: GIS data)
+data_system3 = glueContext.create_dynamic_frame.from_options(
+    connection_type="s3",
+    connection_options={"paths": ["s3://your-bucket-name/system3/raw/table1.csv"]},  # Path to System 3 data
+    format="csv",  # Change if the format is different
+    transformation_ctx="data_system3"
+)
+
+# Convert DynamicFrames to DataFrames for joining
+df_system1 = data_system1.toDF()
+df_system2 = data_system2.toDF()
+df_system3 = data_system3.toDF()
+
+# Perform the join operation on the common key 'property_id' (assuming 'property_id' exists in all data)
+df_joined = df_system1 \
+    .join(df_system2, "property_id", "inner") \
+    .join(df_system3, "property_id", "inner")
+
+# Optional: Select the columns you want to keep from the joined data (if needed)
+df_joined = df_joined.select(
+    "property_id",
+    "building_name",  # Example from System 1
+    "address",  # Example from System 1
+    "floor_count",  # Example from System 2
+    "area",  # Example from System 2
+    "latitude",  # Example from System 3
+    "longitude"  # Example from System 3
+)
+
+# Convert the joined DataFrame back to a DynamicFrame for Glue processing
+joined_dynamic_frame = DynamicFrame.fromDF(df_joined, glueContext, "joined_dynamic_frame")
+
+# Save the integrated data back to S3 in Parquet format for better performance with analytics
+joined_dynamic_frame.toDF().write.parquet("s3://your-bucket-name/integrated_data/")
+
+# You can choose other formats like CSV or JSON based on your needs
